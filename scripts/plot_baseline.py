@@ -31,12 +31,11 @@ def main():
         density_panel(axes[0, j], t, contours=False, title=t.title)
         density_panel(axes[1, j], t, run["samples"])
         axes[1, j].text(0.03, 0.03, f"KL(q‖p) = {m['kl_exact']:.2f} nats",
-                        transform=axes[1, j].transAxes, fontsize=9, color=INK_2)
+                        transform=axes[1, j].transAxes, fontsize=9, color=INK_2,
+                        bbox=dict(boxstyle="round,pad=0.25", fc="white", ec="none", alpha=0.85))
         summary[name] = {k: m[k] for k in ("kl_exact", "kl_qp", "kl_pq", "tv", "mmd2")}
     axes[0, 0].set_ylabel("True posterior p(z | x)", color=INK_2)
     axes[1, 0].set_ylabel("Full-covariance\nGaussian VI q(z)", color=INK_2)
-    for ax in axes[:, 0]:
-        ax.yaxis.label.set_visible(True)
     fig.suptitle("The explicit baseline can only fit an ellipse "
                  "(contours: true 50/90/99% HPD regions)", y=1.0, fontsize=11)
     fig.tight_layout()
