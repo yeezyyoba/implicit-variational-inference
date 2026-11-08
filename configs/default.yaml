@@ -11,6 +11,25 @@ common:
   snapshot_every: 100      # sample snapshots for the training animations
   n_snapshot_samples: 3000
 
+# Per-target settings shared by every method (a method block can still override).
+targets:
+  gmm:
+    n_iters: 8000          # separated modes are discovered one split at a time
+    eval_every: 400
+
 gaussian_vi:
   lr: 0.01
   n_iters: 3000
+
+adversarial:
+  noise_dim: 8             # dim of eps; > 2 so G can fold noise into curved shapes
+  gen_hidden: 64
+  gen_layers: 3
+  disc_hidden: 64
+  disc_layers: 3
+  lr_gen: 0.0002
+  lr_disc: 0.001
+  disc_steps: 5            # classifier steps per generator step (inner loop)
+  disc_warmup: 500         # classifier steps before the first generator step
+  reference: prior         # contrast distribution r: prior | adaptive (moment-matched)
+  ref_batch: 1024          # samples used to moment-match the adaptive reference
