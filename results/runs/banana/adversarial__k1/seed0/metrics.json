@@ -1,0 +1,52 @@
+{
+  "kl_qp": 0.020875472644165657,
+  "kl_pq": 0.011747935926130637,
+  "tv": 0.04281809470686855,
+  "out_mass": 0.00076,
+  "kl_knn": 0.010343450538868204,
+  "entropy_knn": 2.3761852227420857,
+  "cross_entropy": 2.386528673280954,
+  "mmd2": 0.0015375286713226188,
+  "kl_self_estimate": 0.0066070607166199835,
+  "sample_mean": [
+    0.015529656782746315,
+    -0.022951895371079445
+  ],
+  "sample_cov": [
+    [
+      1.5909638940203266,
+      0.050331999306451776
+    ],
+    [
+      0.050331999306451776,
+      1.4659957581487522
+    ]
+  ],
+  "target": "banana",
+  "method": "adversarial",
+  "seed": 0,
+  "tag": "k1",
+  "log_Z": 1.3678734353046327,
+  "train_time_s": 28.105291336021764,
+  "config": {
+    "batch_size": 512,
+    "n_iters": 4000,
+    "log_every": 20,
+    "eval_every": 200,
+    "n_eval_samples": 20000,
+    "n_final_samples": 100000,
+    "snapshot_every": 100,
+    "n_snapshot_samples": 3000,
+    "noise_dim": 8,
+    "gen_hidden": 64,
+    "gen_layers": 3,
+    "disc_hidden": 64,
+    "disc_layers": 3,
+    "lr_gen": 0.0002,
+    "lr_disc": 0.001,
+    "disc_steps": 1,
+    "disc_warmup": 500,
+    "reference": "prior",
+    "ref_batch": 1024
+  }
+}
