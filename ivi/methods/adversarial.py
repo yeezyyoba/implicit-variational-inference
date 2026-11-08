@@ -1,4 +1,4 @@
-"""Implicit VI with adversarial density-ratio estimation (the main assignment).
+r"""Implicit VI with adversarial density-ratio estimation (the main assignment).
 
 The variational family
 ----------------------
@@ -61,10 +61,10 @@ from __future__ import annotations
 
 import torch
 import torch.nn.functional as F
-from torch.distributions import MultivariateNormal
 
 from ..networks import MLP, frozen
 from .base import VIMethod
+from .reference import make_reference
 
 
 class AdversarialVI(VIMethod):
@@ -97,18 +97,12 @@ class AdversarialVI(VIMethod):
 
     # ---- reference distribution r(z) ------------------------------------
     @torch.no_grad()
-    def reference(self) -> MultivariateNormal:
-        if self.reference_type == "prior":
-            s = self.target.prior_std
-            return MultivariateNormal(torch.zeros(2), scale_tril=s * torch.eye(2))
-        if self.reference_type == "adaptive":
-            z = self.generate(self.ref_batch)
-            cov = torch.cov(z.T) + 1e-3 * torch.eye(2)
-            return MultivariateNormal(z.mean(0), covariance_matrix=cov)
-        raise ValueError(f"unknown reference {self.reference_type!r}")
+    def reference(self):
+        """The contrast distribution r(z); see ivi/methods/reference.py."""
+        return make_reference(self.reference_type, self.target, self.generate, self.ref_batch)
 
     # ---- the two alternating updates ------------------------------------
-    def discriminator_step(self, ref: MultivariateNormal) -> tuple[float, float]:
+    def discriminator_step(self, ref) -> tuple[float, float]:
         """One logistic-regression step: q-samples labelled 1, r-samples 0."""
         with torch.no_grad():
             zq = self.generate(self.batch_size)
@@ -123,7 +117,7 @@ class AdversarialVI(VIMethod):
         acc = 0.5 * ((logit_q > 0).float().mean() + (logit_r < 0).float().mean())
         return loss.item(), acc.item()
 
-    def generator_step(self, ref: MultivariateNormal) -> tuple[float, torch.Tensor]:
+    def generator_step(self, ref) -> tuple[float, torch.Tensor]:
         """One step on the estimated KL with the ratio estimator T held fixed."""
         z = self.generate(self.batch_size)
         with frozen(self.discriminator):
