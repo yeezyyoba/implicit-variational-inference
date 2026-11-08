@@ -27,13 +27,19 @@ def load_config(path: Path | str | None = None) -> dict:
         return yaml.safe_load(f)
 
 
-def method_config(method: str, overrides: dict | None = None, path=None) -> dict:
-    """Merge the `common` block with a method's block, then apply overrides.
+def method_config(method: str, overrides: dict | None = None, path=None,
+                  target: str | None = None) -> dict:
+    """Merge config blocks, later ones winning:
 
-    Overrides are flat ``{"key": value}`` pairs (already scoped to the method).
+        common  ->  targets.<target>  ->  <method>  ->  overrides
+
+    ``targets.<target>`` holds per-problem settings shared by all methods (e.g. a
+    longer budget for the mixture). Overrides are flat ``{"key": value}`` pairs.
     """
     cfg = load_config(path)
     merged = copy.deepcopy(cfg.get("common", {}))
+    if target is not None:
+        merged.update((cfg.get("targets") or {}).get(target, {}))
     merged.update(cfg.get(method, {}))
     merged.update(overrides or {})
     return merged

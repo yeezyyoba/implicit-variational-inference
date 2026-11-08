@@ -17,3 +17,6 @@ results/runs/**/*.pt
 .DS_Store
 .vscode/
 .idea/
+
+# local file-sync scratch (safe to delete)
+.sync/

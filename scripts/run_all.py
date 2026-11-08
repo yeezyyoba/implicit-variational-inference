@@ -13,6 +13,7 @@ An ablation, stored under its own tag:
 
 import argparse
 import sys
+import time
 from pathlib import Path
 
 import torch
@@ -36,14 +37,22 @@ def main():
                     help="config overrides, e.g. adversarial.disc_steps=1 or n_iters=2000")
     ap.add_argument("--force", action="store_true", help="re-run even if cached")
     ap.add_argument("--threads", type=int, default=4)
+    ap.add_argument("--time-budget", type=float, default=None, metavar="SECONDS",
+                    help="pause (checkpoint) when this much wall time has passed; "
+                         "re-run the same command to resume")
     args = ap.parse_args()
 
     torch.set_num_threads(args.threads)
+    deadline = time.time() + args.time_budget if args.time_budget else None
     for target in args.targets:
         for method in args.methods:
             for seed in args.seeds:
-                run_one(target, method, seed, tag=args.tag,
-                        overrides=parse_overrides(args.set, method), force=args.force)
+                out = run_one(target, method, seed, tag=args.tag,
+                              overrides=parse_overrides(args.set, method), force=args.force,
+                              deadline=deadline)
+                if out is None:  # paused by the time budget
+                    sys.exit(2)
+    print("ALL_DONE")
 
 
 if __name__ == "__main__":
