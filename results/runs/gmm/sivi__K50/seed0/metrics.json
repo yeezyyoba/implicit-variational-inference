@@ -1,0 +1,59 @@
+{
+  "kl_qp": 1.3804171692176743,
+  "kl_pq": 5.191224065150241,
+  "tv": 0.7478605935875415,
+  "out_mass": 0.0,
+  "kl_knn": 1.383258125439811,
+  "entropy_knn": 1.8261947112493981,
+  "cross_entropy": 3.209452836689209,
+  "mmd2": 0.951048519199611,
+  "mode_coverage": {
+    "weights": [
+      0.9882,
+      0.0001,
+      0.0,
+      0.0001
+    ],
+    "n_covered": 1,
+    "n_modes": 4,
+    "off_mode_mass": 0.01165000000000005
+  },
+  "kl_self_estimate": 1.3850639345749984,
+  "sample_mean": [
+    1.9850190877914429,
+    1.963891863822937
+  ],
+  "sample_cov": [
+    [
+      0.3649730749363086,
+      0.0003164526304345771
+    ],
+    [
+      0.0003164526304345771,
+      0.3624171589622554
+    ]
+  ],
+  "target": "gmm",
+  "method": "sivi",
+  "seed": 0,
+  "tag": "K50",
+  "log_Z": 2.2025201799973617,
+  "train_time_s": 27.4364330792705,
+  "config": {
+    "batch_size": 512,
+    "n_iters": 8000,
+    "log_every": 20,
+    "eval_every": 400,
+    "n_eval_samples": 20000,
+    "n_final_samples": 100000,
+    "snapshot_every": 0,
+    "n_snapshot_samples": 3000,
+    "noise_dim": 8,
+    "hidden": 64,
+    "layers": 3,
+    "lr": 0.001,
+    "K": 50,
+    "K_eval": 2000,
+    "init_sigma": 0.3
+  }
+}

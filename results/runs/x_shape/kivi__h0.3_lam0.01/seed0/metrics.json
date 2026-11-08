@@ -1,0 +1,53 @@
+{
+  "kl_qp": 0.2279532690277722,
+  "kl_pq": 0.12425597133727462,
+  "tv": 0.17230629892864227,
+  "out_mass": 0.02827,
+  "kl_knn": 0.2524207110898051,
+  "entropy_knn": 3.5119491192431527,
+  "cross_entropy": 3.764369830332958,
+  "mmd2": 0.02852384373675143,
+  "kl_self_estimate": -0.4837378637019176,
+  "sample_mean": [
+    -0.06928560882806778,
+    0.04992280900478363
+  ],
+  "sample_cov": [
+    [
+      4.1091056991262125,
+      0.11791556796788448
+    ],
+    [
+      0.11791556796788448,
+      4.024732724503182
+    ]
+  ],
+  "target": "x_shape",
+  "method": "kivi",
+  "seed": 0,
+  "tag": "h0.3_lam0.01",
+  "log_Z": 2.393805824118517,
+  "train_time_s": 29.284473440133297,
+  "config": {
+    "batch_size": 512,
+    "n_iters": 4000,
+    "log_every": 20,
+    "eval_every": 1000,
+    "n_eval_samples": 20000,
+    "n_final_samples": 100000,
+    "snapshot_every": 0,
+    "n_snapshot_samples": 3000,
+    "noise_dim": 8,
+    "gen_hidden": 64,
+    "gen_layers": 3,
+    "lr_gen": 0.0002,
+    "n_basis": 256,
+    "n_ref": 2048,
+    "lam": 0.01,
+    "bandwidth": 0.3,
+    "bw_scale": 1.0,
+    "ratio_floor": 0.0001,
+    "reference": "student_t",
+    "ref_batch": 1024
+  }
+}
