@@ -1,0 +1,16 @@
+# Hyperparameters for every method. `common` is merged into each method block.
+# Override from the CLI, e.g.  --set adversarial.disc_steps=1
+
+common:
+  batch_size: 512
+  n_iters: 4000            # optimiser steps on the variational parameters
+  log_every: 20            # how often training scalars are recorded
+  eval_every: 200          # how often the grid-based KL to the truth is measured
+  n_eval_samples: 20000    # samples used for that in-training evaluation
+  n_final_samples: 100000  # samples used for the final metrics
+  snapshot_every: 100      # sample snapshots for the training animations
+  n_snapshot_samples: 3000
+
+gaussian_vi:
+  lr: 0.01
+  n_iters: 3000

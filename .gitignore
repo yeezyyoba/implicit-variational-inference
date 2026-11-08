@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+ivenv/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Heavy per-run artefacts (regenerate with scripts/run_all.py)
+results/runs/**/*.npz
+results/runs/**/*.pt
+
+# OS / editors
+.DS_Store
+.vscode/
+.idea/
