@@ -20,10 +20,22 @@ def test_grid_normalises_to_one():
 
 
 def test_grid_resolution_converged():
-    # log Z should barely move when the grid is refined -> the box holds the mass
+    # the box-normalised grid should barely move when refined
     for name in TARGETS:
         t = get_target(name)
-        assert abs(t.ground_truth(200)["log_Z"] - t.ground_truth(400)["log_Z"]) < 1e-3, name
+        assert abs(t.ground_truth(200)["log_Z_box"] - t.ground_truth(400)["log_Z_box"]) < 1e-3
+
+
+def test_log_Z_matches_closed_form():
+    import math
+    t = get_target("banana")      # 2*pi*a*s
+    assert abs(t.log_Z - math.log(2 * math.pi * t.a * t.s)) < 1e-4
+    t = get_target("x_shape")     # 2 components, each 2*pi*sqrt(det)
+    assert abs(t.log_Z - math.log(4 * math.pi * math.sqrt(t.var ** 2 - t.cov ** 2))) < 1e-4
+    t = get_target("gmm")         # 4 components, each 2*pi*s^2
+    assert abs(t.log_Z - math.log(4 * 2 * math.pi * t.mode_std ** 2)) < 1e-4
+    for name in TARGETS:          # the plotting box holds (almost) all the mass
+        assert get_target(name).ground_truth()["in_box_mass"] > 0.995
 
 
 def test_truth_samples_match_moments():

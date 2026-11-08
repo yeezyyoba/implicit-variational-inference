@@ -72,16 +72,38 @@ class Target:
         Z = torch.tensor(np.stack([X.ravel(), Y.ravel()], axis=1), dtype=torch.float64)
         with torch.no_grad():
             lu = self.log_unnorm(Z).numpy().reshape(n, n)
-        log_Z = _logsumexp_np(lu) + math.log(dx * dy)
+        log_Z_box = _logsumexp_np(lu) + math.log(dx * dy)
         gt = dict(xs=xs, ys=ys, X=X, Y=Y, dx=dx, dy=dy,
-                  log_density=lu - log_Z, log_Z=log_Z)
+                  log_density=lu - log_Z_box,  # normalised *within* the box
+                  log_Z_box=log_Z_box,
+                  in_box_mass=math.exp(log_Z_box - self.log_Z))
         self._gt_cache[n] = gt
         return gt
 
     @property
     def log_Z(self) -> float:
-        """log of the normalising constant of p~ (the log evidence, log p(x))."""
-        return self.ground_truth()["log_Z"]
+        """log of the normalising constant of p~ (the log evidence, log p(x)).
+
+        Integrated on a box 5x wider than ``bounds`` so that no tail mass is lost
+        (the plotting box itself can clip a sliver, e.g. the banana's arm tips).
+        """
+        if "log_Z" not in self._gt_cache:
+            (x0, x1), (y0, y1) = self.bounds
+            wx, wy = x1 - x0, y1 - y0
+            n = 1500
+            xs = np.linspace(x0 - 2 * wx, x1 + 2 * wx, n)
+            ys = np.linspace(y0 - 2 * wy, y1 + 2 * wy, n)
+            X, Y = np.meshgrid(xs, ys)
+            Z = torch.tensor(np.stack([X.ravel(), Y.ravel()], axis=1), dtype=torch.float64)
+            with torch.no_grad():
+                lu = self.log_unnorm(Z).numpy()
+            self._gt_cache["log_Z"] = _logsumexp_np(lu) + math.log(
+                (xs[1] - xs[0]) * (ys[1] - ys[0]))
+        return self._gt_cache["log_Z"]
+
+    def log_density(self, z: torch.Tensor) -> torch.Tensor:
+        """Exactly normalised log posterior density log p(z | x)."""
+        return self.log_unnorm(z) - self.log_Z
 
     def sample_truth(self, n: int, seed: int = 0) -> np.ndarray:
         """Exact-up-to-grid-resolution samples: pick a cell by mass, jitter inside it."""

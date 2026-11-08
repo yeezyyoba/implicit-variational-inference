@@ -6,16 +6,48 @@ samples alone. That keeps the comparison fair across explicit and implicit q.
 * grid_divergences: bin q's samples on the same grid as the true posterior and
   compute reverse KL(q || p), forward KL(p || q) and total variation.
   Reverse KL is what VI minimises; forward KL punishes *missing* mass (modes).
+* kl_knn: binning-free reverse KL(q || p) = -H[q] - E_q[log p(z|x)], with the
+  entropy H[q] from a k-nearest-neighbour estimator and log p exact. This is the
+  headline metric: it sees far-tail mass exactly, which a histogram cannot.
 * mmd2: kernel two-sample distance between q's samples and exact posterior samples.
 * mode_coverage: how q's mass is split across known modes (mixture target only).
 """
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 import torch
+from scipy.spatial import cKDTree
+from scipy.special import digamma
 
 from .targets import Target
+
+
+def knn_entropy(samples: np.ndarray, k: int = 5) -> float:
+    """Kozachenko-Leonenko estimator of differential entropy (nats).
+
+    H ~ psi(N) - psi(k) + log V_d + (d/N) sum_i log eps_i,
+    with eps_i the distance from sample i to its k-th nearest neighbour and V_d
+    the volume of the unit d-ball. Consistent, and very accurate in 2D.
+    """
+    x = np.asarray(samples, dtype=np.float64)
+    n, d = x.shape
+    eps = cKDTree(x).query(x, k=k + 1)[0][:, -1]  # k+1: the point itself is 0
+    eps = np.maximum(eps, 1e-12)
+    log_vd = (d / 2) * math.log(math.pi) - math.lgamma(d / 2 + 1)
+    return float(digamma(n) - digamma(k) + log_vd + d * np.mean(np.log(eps)))
+
+
+def kl_knn(samples: np.ndarray, target: Target, k: int = 5, max_n: int = 50000) -> dict:
+    """Reverse KL(q || p) from samples only: -H_knn[q] - E_q[log p(z | x)]."""
+    x = np.asarray(samples[:max_n], dtype=np.float64)
+    with torch.no_grad():
+        log_p = target.log_density(torch.as_tensor(x)).numpy()
+    h = knn_entropy(x, k)
+    return dict(kl_knn=float(-h - log_p.mean()), entropy_knn=h,
+                cross_entropy=float(-log_p.mean()))
 
 
 def true_bin_probs(target: Target, bins: int, refine: int = 4) -> np.ndarray:
@@ -23,7 +55,7 @@ def true_bin_probs(target: Target, bins: int, refine: int = 4) -> np.ndarray:
     gt = target.ground_truth(bins * refine)
     p = np.exp(gt["log_density"]) * gt["dx"] * gt["dy"]
     p = p.reshape(bins, refine, bins, refine).sum(axis=(1, 3))
-    return p / p.sum()
+    return gt["in_box_mass"] * p / p.sum()
 
 
 def grid_divergences(samples: np.ndarray, target: Target, bins: int = 50,
@@ -31,8 +63,9 @@ def grid_divergences(samples: np.ndarray, target: Target, bins: int = 50,
     """Histogram-based divergences between q (samples) and the true posterior.
 
     alpha is a small pseudo-count so that log q is finite in empty bins; samples
-    that leave the bounding box go to an extra "outside" bin where the truth has
-    (essentially) no mass, so leaking mass is penalised rather than ignored.
+    that leave the bounding box go to an extra "outside" bin whose true mass is
+    computed exactly, so leaking mass is penalised rather than ignored. Binning
+    still blurs tails; prefer ``kl_knn`` for reverse KL.
     """
     samples = np.asarray(samples)
     (x0, x1), (y0, y1) = target.bounds
@@ -42,7 +75,8 @@ def grid_divergences(samples: np.ndarray, target: Target, bins: int = 50,
     n = len(samples)
     n_out = n - H.sum()
 
-    p = np.append(true_bin_probs(target, bins).ravel(), 0.0)
+    p_in = true_bin_probs(target, bins).ravel()
+    p = np.append(p_in, 1.0 - p_in.sum())  # true mass outside the box
     p = np.maximum(p, p_floor)
     p /= p.sum()
     counts = np.append(H.ravel(), n_out)
