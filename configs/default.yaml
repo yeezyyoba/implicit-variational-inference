@@ -31,5 +31,29 @@ adversarial:
   lr_disc: 0.001
   disc_steps: 5            # classifier steps per generator step (inner loop)
   disc_warmup: 500         # classifier steps before the first generator step
-  reference: prior         # contrast distribution r: prior | adaptive (moment-matched)
+  reference: prior         # contrast distribution r: prior | student_t | adaptive
   ref_batch: 1024          # samples used to moment-match the adaptive reference
+
+kivi:
+  noise_dim: 8
+  gen_hidden: 64
+  gen_layers: 3
+  lr_gen: 0.0002
+  n_basis: 256             # kernel centres (q-samples); cost O(n_basis^3) per step
+  n_ref: 2048              # reference samples used to fit the ratio
+  lam: 0.001               # ridge penalty of the least-squares ratio fit
+  bandwidth: 0.3           # fixed RBF bandwidth h (null -> median heuristic, unstable here)
+  bw_scale: 1.0            # only used by the median heuristic
+  ratio_floor: 0.0001      # rho_hat is clipped below before taking the log
+  reference: student_t     # heavy tails: kernel ratios cannot extrapolate (see reference.py)
+  ref_batch: 1024
+
+sivi:
+  noise_dim: 8
+  hidden: 64
+  layers: 3
+  lr: 0.001
+  K: 500                   # extra mixing samples in the surrogate log q (bound tightness);
+                           # small K under-rewards spreading -> mode collapse on the mixture
+  K_eval: 2000             # mixing samples for evaluating log q after training
+  init_sigma: 0.3          # small start: forces psi to spread (sigma=1 stalls on a Gaussian plateau)

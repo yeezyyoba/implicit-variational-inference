@@ -3,8 +3,10 @@
 from .base import VIMethod
 from .adversarial import AdversarialVI
 from .gaussian_vi import GaussianVI
+from .kivi import KernelImplicitVI
+from .sivi import SemiImplicitVI
 
-METHODS = {cls.name: cls for cls in (GaussianVI, AdversarialVI)}
+METHODS = {cls.name: cls for cls in (GaussianVI, AdversarialVI, KernelImplicitVI, SemiImplicitVI)}
 
 
 def build_method(name: str, target, cfg: dict) -> VIMethod:
