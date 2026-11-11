@@ -53,6 +53,7 @@ from ivi.utils import method_config
 from ivi.methods import build_method
 from ivi.metrics import kl_knn
 setup_style(); torch.set_num_threads(4)
+%matplotlib inline
 FIG = ROOT / "figures"
 """)
 
